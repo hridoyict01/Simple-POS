@@ -4,7 +4,10 @@ using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Web.Http;
+using Pos.Dtos;
 using Pos.Models;
+using AutoMapper;
+
 
 namespace Pos.Controllers.Api
 {
@@ -18,73 +21,79 @@ namespace Pos.Controllers.Api
         }
 
         //GET/api/suppliers
-        public IEnumerable<Supplier> GetSuppliers()
+        public IHttpActionResult GetSuppliers()
         {
-            return _context.Suppliers.ToList();
+            return Ok(_context.Suppliers.ToList().Select(Mapper.Map<Supplier, SupplierDto>));
         }
 
         //GET/api/suppliers/5
-        public Supplier GetSupplier(int id)
+        public IHttpActionResult GetSupplier(int id)
         {
             var supplier = _context.Suppliers.SingleOrDefault(s => s.Id == id);
 
             if (supplier == null)
             {
-                throw new HttpResponseException(HttpStatusCode.NotFound);
+                return NotFound();
             }
 
-            return supplier;
+            return Ok( Mapper.Map<Supplier,SupplierDto>(supplier) );
         }
 
         //POST/api/suppliers
         [HttpPost]
-        public Supplier CreateSupplier(Supplier supplier)
+        public IHttpActionResult CreateSupplier(SupplierDto supplierDto)
         {
             if (!ModelState.IsValid)
             {
-                throw new HttpResponseException(HttpStatusCode.BadRequest);
+                return BadRequest();
             }
+
+            var supplier = Mapper.Map<SupplierDto, Supplier>(supplierDto);
 
             _context.Suppliers.Add(supplier);
             _context.SaveChanges();
-            return supplier;
+
+            supplierDto.Id = supplier.Id;
+            return Created(new Uri(Request.RequestUri+ "/" + supplier.Id),supplierDto );
         }
 
         //PUT/api/suppliers
         [HttpPut]
-        public void UpdateSupplier(int id, Supplier supplier)
+        public IHttpActionResult UpdateSupplier(int id, SupplierDto supplierDto)
         {
             if (!ModelState.IsValid)
             {
-                throw new HttpResponseException(HttpStatusCode.BadRequest);
+                return BadRequest();
             }
 
             var supplierInDb = _context.Suppliers.SingleOrDefault(s => s.Id == id);
             if (supplierInDb == null)
             {
-                throw  new HttpResponseException(HttpStatusCode.NotFound);
+                return NotFound();
             }
 
-
-
-
+            Mapper.Map<SupplierDto, Supplier>(supplierDto, supplierInDb);
             _context.SaveChanges();
-
+            return Ok();
         }
 
-        //DELETE/api/supplier
+        //DELETE/api/supplierDto
         [HttpDelete]
-        public void DeleteSupplier(int id)
+        public IHttpActionResult DeleteSupplier(int id)
         {
             var supplierInDb = _context.Suppliers.SingleOrDefault(s => s.Id == id);
 
             if (supplierInDb == null)
             {
-                throw  new HttpResponseException(HttpStatusCode.NotFound);
+                return NotFound();
             }
 
             _context.Suppliers.Remove(supplierInDb);
             _context.SaveChanges();
+
+            return Ok();
         }
     }
 }
+
+

@@ -6,6 +6,8 @@ using System.Web.Http;
 using System.Web.Mvc;
 using System.Web.Optimization;
 using System.Web.Routing;
+using AutoMapper;
+using Pos.App_Start;
 
 namespace Pos
 {
@@ -13,6 +15,7 @@ namespace Pos
     {
         protected void Application_Start()
         {
+            Mapper.Initialize(s=>s.AddProfile<MappingProfile>());
             GlobalConfiguration.Configure(WebApiConfig.Register);
             AreaRegistration.RegisterAllAreas();
             FilterConfig.RegisterGlobalFilters(GlobalFilters.Filters);
